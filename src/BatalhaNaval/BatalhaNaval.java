@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class BatalhaNaval {
+
     public static char[][] geradorDeMatriz() {
         char[][] matriz = new char[11][11];
         matriz[0] = new char[]{'*', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'};
@@ -17,60 +18,33 @@ public class BatalhaNaval {
     }
 
     public static boolean checkBomba(int[] bomba) {
-        if (bomba.length != 2) {
-            return false; //false se não houver exatamente dois elementos
-        } else {
-            int coluna = bomba[0];
-            int linha = bomba[1];
-            return coluna >= 1 && coluna <= 10 && linha >= 1 && linha <= 10; //verdadeiro se as coordenadas estiverem dentro dos limites
-        }
+        return bomba.length == 2 && bomba[0] >= 1 && bomba[0] <= 10 && bomba[1] >= 1 && bomba[1] <= 10;
     }
 
     public static boolean confereOP(char opcao) {
-        if (opcao == '1' || opcao == '2') {
-            return true;
-        } else {
-            System.out.print("\n\uD83C\uDFF4\u200D☠\uFE0F\uD83E\uDD9C:OHO, Marujo! Está me testando, espertinho? " +
-                    "Digite uma opção válida desta vez [1/2]: ");
-            return false;
-        }
+        return opcao == '1' || opcao == '2';
     }
 
     public static void mostrarMatrizDeJogo(char[][] matriz) {
         for (char[] linha : matriz) {
-            for (int j = 0; j < linha.length; j++) {
-                System.out.printf("| %c ", linha[j]);
+            for (char celula : linha) {
+                System.out.printf("| %c ", celula);
             }
-            System.out.print("|");
-            System.out.println("\n! - ! - ! - ! - ! - ! - ! - ! - ! - ! - ! - !");
+            System.out.println("|\n! - ! - ! - ! - ! - ! - ! - ! - ! - ! - ! - !");
         }
     }
 
-    //converter a entrada da bomba em coordenadas legíveis para o jogo
     public static int[] refatorando(String bomba) {
-        if (bomba.length() != 2)
-            bomba = "x";
-        return new int[]{bomba.charAt(0) - 'a' + 1, bomba.charAt(1) - '0' + 1};
+        return checkBomba(new int[]{bomba.charAt(0) - 'a' + 1, bomba.charAt(1) - '0' + 1}) ? new int[]{bomba.charAt(0) - 'a' + 1, bomba.charAt(1) - '0' + 1} : new int[]{-1, -1};
     }
 
     public static boolean conferirdirecao(int tamanho, char[][] matriz, int[] bomba, boolean horizontalOUvertical) {
-        //verifica se as coordenadas da bomba estão dentro dos limites da matriz
-        if (bomba[0] < 1 || bomba[0] > 10 || bomba[1] < 1 || bomba[1] > 10) {
-            return false;
-        }
+        if (!checkBomba(bomba)) return false;
         int pontaBarco = horizontalOUvertical ? bomba[1] + tamanho - 1 : bomba[0] + tamanho - 1;
-        if (pontaBarco > 10) {
-            return false;
-        }
+        if (pontaBarco > 10) return false;
         for (int i = horizontalOUvertical ? bomba[1] : bomba[0]; i <= pontaBarco; i++) {
-            if (horizontalOUvertical) {
-                if (matriz[i][bomba[0]] == 'B') {
-                    return false;
-                }
-            } else {
-                if (matriz[bomba[1]][i] == 'B') {
-                    return false;
-                }
+            if (horizontalOUvertical && matriz[i][bomba[0]] == 'B' || !horizontalOUvertical && matriz[bomba[1]][i] == 'B') {
+                return false;
             }
         }
         return true;
@@ -79,16 +53,11 @@ public class BatalhaNaval {
     public static char[][] colocaBarco(int tamanho, char[][] matriz, int[] bomba, boolean horizontalOUvertical) {
         int pontaBarco = horizontalOUvertical ? bomba[1] + tamanho - 1 : bomba[0] + tamanho - 1;
         for (int i = horizontalOUvertical ? bomba[1] : bomba[0]; i <= pontaBarco; i++) {
-            if (horizontalOUvertical) {
-                matriz[i][bomba[0]] = 'B';
-            } else {
-                matriz[bomba[1]][i] = 'B';
-            }
+            matriz[horizontalOUvertical ? i : bomba[1]][horizontalOUvertical ? bomba[0] : i] = 'B';
         }
         return matriz;
     }
 
-    // gerar coordenadas aleatórias dentro dos limites da matriz
     public static int[] gerador() {
         Random aleatorizar = new Random();
         int[] bomba = new int[2];
@@ -99,36 +68,21 @@ public class BatalhaNaval {
         return bomba;
     }
 
-    //lançar uma bomba em uma posição aleatória
     public static int[] lancarBomba(char[][] matriz) {
-        Random aleatorizar = new Random();
-        int[] bomba = new int[2];
-        do {
-            bomba[0] = aleatorizar.nextInt(10) + 1;
-            bomba[1] = aleatorizar.nextInt(10) + 1;
-        } while (matriz[bomba[1]][bomba[0]] == 'X' || matriz[bomba[1]][bomba[0]] == 'A' || !checkBomba(bomba));
-        return bomba;
+        return gerador();
     }
 
-    public static boolean direcao() {
-        Scanner ler = new Scanner(System.in);
-        boolean proximo = false;
+    public static boolean direcao(Scanner ler) {
         char orientacao = 0;
         boolean direcaoBool = false;
-
-        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C:Estou posicionando seu navio, marujo! Pra que lado eu viro mesmo?");
-        System.out.print("Marujo, o pirata quer saber como deve posicionar seu barco? Vertical[1] ou Horizontal[2]: ");
+        System.out.print("\n\uD83C\uDFF4\u200D☠\uFE0F\uD83E\uDD9C: Estou posicionando seu navio, marujo! Pra que lado eu viro mesmo? Marujo, o pirata quer saber como deve posicionar seu barco? Vertical[1] ou Horizontal[2]: ");
         do {
             orientacao = ler.next().charAt(0);
-            proximo = confereOP(orientacao);
-        } while (!proximo);
-        if (orientacao == '1') {
-            direcaoBool = true;
-        }
+        } while (!confereOP(orientacao));
+        direcaoBool = orientacao == '1';
         return direcaoBool;
     }
 
-    //posicionar automaticamente os navios na matriz
     public static char[][] naviosAutomaticos(char[][] matriz, int num, int tamBarco) {
         Random aleatorizar = new Random();
         int contBarcos = 0;
@@ -145,48 +99,35 @@ public class BatalhaNaval {
         return matriz;
     }
 
-    public static char alocacao() {
-        Scanner ler = new Scanner(System.in);
-        boolean proximo = false;
+    public static char alocacao(Scanner ler) {
         char autoSN = ' ';
-
-        System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C:Arr! Preciso lhe perguntar chefia. Eu escolho onde " +
-                "colocar essas belezinhas ou o senhor manda? ");
-        System.out.print("'Vá enfrente'[1] ou 'Eu comando'[2]: ");
+        System.out.println("\n\uD83C\uDFF4\u200D☠\uFE0F\uD83E\uDD9C: Arr! Preciso lhe perguntar chefia. Eu escolho onde colocar essas belezinhas ou o senhor manda? 'Vá enfrente'[1] ou 'Eu comando'[2]: ");
         do {
             autoSN = ler.next().charAt(0);
-            proximo = confereOP(autoSN);
-        } while (!proximo);
+        } while (!confereOP(autoSN));
         return autoSN;
     }
 
-    public static char[][] posicionaBarco(int tamBarco, char[][] matriz) {
-        Scanner ler = new Scanner(System.in);
+    public static char[][] posicionaBarco(int tamBarco, char[][] matriz, Scanner ler) {
         int[] bomba = new int[2];
         boolean orientacao = false;
         boolean proximo = false;
         do {
             switch (tamBarco) {
-                case 1 ->
-                        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse submarino (ocupa uma posição)? ");
-                case 2 ->
-                        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse barco de remo (ocupa duas posições)? ");
-                case 3 ->
-                        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse barco (ocupa três posições)? ");
-                case 4 ->
-                        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Aha! Onde coloco esse Navio Pirata (ocupa " +
-                                "quatro posições)? ");
+                case 1 -> System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse submarino (ocupa uma posição)? ");
+                case 2 -> System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse barco de remo (ocupa duas posições)? ");
+                case 3 -> System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Onde coloco esse barco (ocupa três posições)? ");
+                case 4 -> System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Aha! Onde coloco esse Navio Pirata (ocupa quatro posições)? ");
             }
             String pos = ler.next();
             bomba = refatorando(pos);
             proximo = conferirdirecao(tamBarco, matriz, bomba, orientacao);
             if (!proximo) {
-                System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Argh! Um pirata bobo você, não? O barco não cabe" +
-                        " aqui, chefe! Onde coloco? ");
+                System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Argh! Um pirata bobo você, não? O barco não cabe aqui, chefe! Onde coloco? ");
                 continue;
             }
             if (tamBarco != 1)
-                orientacao = direcao();
+                orientacao = direcao(ler);
             proximo = conferirdirecao(tamBarco, matriz, bomba, orientacao);
             if (!proximo)
                 System.out.print("Este barco não cabe ai, chefe! ");
@@ -196,27 +137,25 @@ public class BatalhaNaval {
         return matriz;
     }
 
-    //posicionar os barcos manualmente
-    public static char[][] manual(char[][] matriz) {
+    public static char[][] manual(char[][] matriz, Scanner ler) {
         mostrarMatrizDeJogo(matriz);
-        matriz = posicionaBarco(4, matriz);
+        matriz = posicionaBarco(4, matriz, ler);
 
         for (int i = 0; i < 2; i++) {
             mostrarMatrizDeJogo(matriz);
-            matriz = posicionaBarco(3, matriz);
+            matriz = posicionaBarco(3, matriz, ler);
         }
         for (int i = 0; i < 3; i++) {
             mostrarMatrizDeJogo(matriz);
-            matriz = posicionaBarco(2, matriz);
+            matriz = posicionaBarco(2, matriz, ler);
         }
         for (int i = 0; i < 4; i++) {
             mostrarMatrizDeJogo(matriz);
-            matriz = posicionaBarco(1, matriz);
+            matriz = posicionaBarco(1, matriz, ler);
         }
         return matriz;
     }
 
-    //posicionar automaticamente os barcos
     public static char[][] auto(char[][] matriz) {
         matriz = naviosAutomaticos(matriz, 1, 4);
         matriz = naviosAutomaticos(matriz, 2, 3);
@@ -227,17 +166,17 @@ public class BatalhaNaval {
 
     public static int condicaoDaBomba(int[] bomba, char[][] matriz) {
         return switch (matriz[bomba[1]][bomba[0]]) {
-            case 'B' -> 1;     //retorna 1 se atingir um barco
-            case 'X', 'O' -> 2; //retorna 2 se a posição já foi atingida anteriormente
-            default -> 3;      //retorna 3 se a bomba caiu na água
+            case 'B' -> 1;
+            case 'X', 'O' -> 2;
+            default -> 3;
         };
     }
 
     public static char[][] lancarBomba(int[] bomba, char[][] matriz, int condicaoDaBomba) {
         if (condicaoDaBomba == 1) {
-            matriz[bomba[1]][bomba[0]] = 'X'; //a posição do barco atingido
+            matriz[bomba[1]][bomba[0]] = 'X';
         } else if (condicaoDaBomba == 3) {
-            matriz[bomba[1]][bomba[0]] = 'O'; //a posição da água
+            matriz[bomba[1]][bomba[0]] = 'O';
         }
         return matriz;
     }
@@ -250,7 +189,7 @@ public class BatalhaNaval {
                     tiros++;
             }
         }
-        return tiros == 20; //verdadeiro se todos os navios forem atingidos
+        return tiros == 20;
     }
 
     public static void main(String[] args) {
@@ -262,65 +201,142 @@ public class BatalhaNaval {
         int[] bomba = new int[2];
         int bombaRes = 0;
         String ganhador = "";
-        boolean continua = false;
         boolean proximo = false;
         char[][] matriz1 = geradorDeMatriz();
         char[][] ataque1 = geradorDeMatriz();
         char[][] matriz2 = geradorDeMatriz();
         char[][] ataque2 = geradorDeMatriz();
 
-        System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Isto vai ser uma briga justa! Preparem-se, pois " +
-                "estamos prestes a iniciar a Batalha Naval! ");
-
-        System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Antes de iniciarmos a Batalha Naval, uma questão: ");
-        System.out.print("Quem decide a localização dos barcos? (Você ou o Pirata?)\n1. Você\n2. O Pirata\nResposta: ");
-
+        System.out.println("\n\uD83C\uDFF4\u200D☠\uFE0F\uD83E\uDD9C: YoHo Marujo! Bem vindo a Batalha Naval! Eu serei seu pirata guia no dia de hoje, como vamos fazer isso? ");
+        System.out.println("\n   ⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆ ");
+        System.out.println("| Marujo x PirateSoftware(robô) [1] |");
+        System.out.println("| Marujo x Marujo               [2] |");
+        System.out.println("   ⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆⋆༺\uD80C\uDDA9☠\uFE0E\uFE0E\uD80C\uDDAA༻⋆ ");
         do {
-            alocacao = ler.next().charAt(0);
-            proximo = confereOP(alocacao);
+            autoSN = ler.next().charAt(0);
+            proximo = confereOP(autoSN);
         } while (!proximo);
 
-        if (alocacao == '1') {
-            matriz1 = manual(matriz1);
+        if (autoSN == '1') {
             matriz2 = auto(matriz2);
-        } else {
-            matriz1 = auto(matriz1);
-            matriz2 = manual(matriz2);
-        }
-
-        while (!fim) {
-            System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Iniciando ataque!");
-            System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Tá na hora de atirar no navio, Marujo! ");
-            if (vez) {
-                mostrarMatrizDeJogo(ataque1);
-                System.out.print("Informe a posição da bomba [exemplo: A1]: ");
-                do {
-                    String pos = ler.next();
-                    bomba = refatorando(pos);
-                    bombaRes = condicaoDaBomba(bomba, matriz2);
-                    continua = bombaRes == 2 || bombaRes == 3;
-                    if (continua) {
-                        System.out.print("Já atiramos aqui, chefe! Onde é o próximo ponto? ");
-                    }
-                } while (continua);
-                ataque1 = lancarBomba(bomba, matriz2, bombaRes);
-                fim = contar(matriz2);
-                vez = false;
-            } else {
-                mostrarMatrizDeJogo(ataque2);
-                bomba = lancarBomba(matriz1);
-                bombaRes = condicaoDaBomba(bomba, matriz1);
-                ataque2 = lancarBomba(bomba, matriz1, bombaRes);
-                fim = contar(matriz1);
-                vez = true;
+            alocacao = alocacao(ler);
+            if (alocacao == '1') {
+                matriz1 = auto(matriz1);
+            }
+            if (alocacao == '2') {
+                matriz1 = manual(matriz1, ler);
             }
         }
 
-        if (vez)
-            ganhador = "Pirata";
-        else
-            ganhador = "Marujo";
+        if (autoSN == '2') {
+            alocacao = alocacao(ler);
+            if (alocacao == '1') {
+                matriz1 = auto(matriz1);
+            }
+            if (alocacao == '2') {
+                matriz1 = manual(matriz1, ler);
+            }
+            alocacao = alocacao(ler);
+            if (alocacao == '1') {
+                matriz2 = auto(matriz2);
+            }
+            if (alocacao == '2') {
+                matriz2 = manual(matriz2, ler);
+            }
+        }
 
-        System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: A batalha terminou! O grande vencedor é: " + ganhador + "! Parabéns!");
+        do {
+            if (vez) {
+                System.out.println("\nVez do primeiro Marujo:  ");
+                do {
+                    mostrarMatrizDeJogo(ataque2);
+                    System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Posição da bomba, Marujo! [ex; a1]: ");
+                    do {
+                        String pos = ler.next();
+                        bomba = refatorando(pos);
+                        proximo = checkBomba(bomba);
+                        if (!proximo)
+                            System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Nay! De novo: ");
+                    } while (!proximo);
+
+                    bombaRes = condicaoDaBomba(bomba, matriz2);
+                    ataque2 = lancarBomba(bomba, ataque2, bombaRes);
+                    matriz2 = lancarBomba(bomba, matriz2, bombaRes);
+
+                    switch (bombaRes) {
+                        case 1 -> {
+                            System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Capitão, acertamos um barco!");
+                            vez = true;
+                        }
+                        case 2 -> {
+                            System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Arr! Não te vareia, abobado! Você ja jogou uma bomba ai! ");
+                            vez = true;
+                        }
+                        case 3 -> {
+                            System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Espero que essa bomba na água não mate nenhum peixe. Aha! ");
+                            vez = false;
+                        }
+                    }
+
+                    fim = contar(ataque2);
+                    if (fim)
+                        ganhador = "Parabéns Marujo 1";
+                } while (vez && !fim);
+            } else {
+                System.out.println("\nVez do segundo Marujo: ");
+                do {
+                    if (autoSN == '1') {
+                        bomba = lancarBomba(matriz1);
+                    }
+
+                    if (autoSN == '2') {
+                        mostrarMatrizDeJogo(ataque1);
+                        System.out.print("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Posição da bomba, Marujo! [ex; a1]: ");
+                        do {
+                            String pos = ler.next();
+                            bomba = refatorando(pos);
+                            proximo = checkBomba(bomba);
+
+                            if (!proximo)
+                                System.out.print("Nay, de novo: ");
+                        } while (!proximo);
+                    }
+
+                    bombaRes = condicaoDaBomba(bomba, matriz1);
+                    ataque1 = lancarBomba(bomba, ataque1, bombaRes);
+                    matriz1 = lancarBomba(bomba, matriz1, bombaRes);
+
+                    if (autoSN == '2')
+                        mostrarMatrizDeJogo(ataque1);
+
+                    switch (bombaRes) {
+                        case 1 -> {
+                            System.out.println("\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Capitão, acertamos um barco!\n");
+                            vez = false;
+                        }
+                        case 2 -> {
+                            System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Arr! Não te vareia, abobado! Você ja jogou uma bomba ai! ");
+                            vez = false;
+                        }
+                        case 3 -> {
+                            System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: Espero que essa bomba na água não mate nenhum peixe. Aha! ");
+                            vez = true;
+                        }
+                    }
+
+                    fim = contar(ataque1);
+                    if (fim)
+                        ganhador = "Parabéns Marujo 2";
+                } while (!vez && !fim);
+            }
+        } while (!fim);
+
+        System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: " + ganhador + "!!");
+
+        if (autoSN == '1')
+            mostrarMatrizDeJogo(matriz2);
+
+        if (autoSN == '2')
+            mostrarMatrizDeJogo(matriz1);
     }
 }
