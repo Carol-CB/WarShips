@@ -192,6 +192,7 @@ public class BatalhaNaval {
         return tiros == 20;
     }
 
+
     public static void main(String[] args) {
         Scanner ler = new Scanner(System.in);
         char autoSN = ' ';
@@ -329,12 +330,15 @@ public class BatalhaNaval {
                         ganhador = "Parabéns Marujo 2";
                 } while (!vez && !fim);
             }
+
+            fim = contar(ataque2) || contar(ataque1);
         } while (!fim);
 
         System.out.println("\n\n\uD83C\uDFF4\u200D☠️\uFE0F\uD83E\uDD9C: " + ganhador + "!!");
 
         if (autoSN == '1')
             mostrarMatrizDeJogo(matriz2);
+
 
         if (autoSN == '2')
             mostrarMatrizDeJogo(matriz1);
